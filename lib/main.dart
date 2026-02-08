@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/register.dart';
 import 'pages/login.dart';
+import 'pages/homepage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login' : (context) => const LoginPage(),
-        'SignUp' : (context) => const SignUp()
+        'SignUp' : (context) => const SignUp(),
+        'home' : (context) => const ChatHomePage()
       },
     );
   }

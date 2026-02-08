@@ -101,8 +101,21 @@ class SignUp extends StatelessWidget {
                     fillColor: const Color(0xFF181E32),
                   ),
                 ),
+                TextField(
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintText: 'Enter your email',
+                    hintStyle: TextStyle(color: Colors.grey[700]),
+                    filled: true,
+                    fillColor: const Color(0xFF181E32),
+                  ),
+                ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 25),
 
                 SizedBox(
                   width: double.infinity,
