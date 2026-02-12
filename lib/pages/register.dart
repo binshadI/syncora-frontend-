@@ -101,6 +101,15 @@ class SignUp extends StatelessWidget {
                     fillColor: const Color(0xFF181E32),
                   ),
                 ),
+                const SizedBox(height:12),
+                const Text(
+                  'confirm password',
+                  style: TextStyle(
+                    color: Color(0xFFCFCECE),
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 12,),
                 TextField(
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
@@ -108,7 +117,7 @@ class SignUp extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    hintText: 'Enter your email',
+                    hintText: 'confirm password',
                     hintStyle: TextStyle(color: Colors.grey[700]),
                     filled: true,
                     fillColor: const Color(0xFF181E32),

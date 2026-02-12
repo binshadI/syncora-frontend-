@@ -1,10 +1,44 @@
 import 'dart:convert';
-
-import 'package:frontend/models/login_request_model.dart';
-import 'package:frontend/models/login_response_model.dart';
-
 import 'package:http/http.dart' as http;
 
 import '../config/config.dart';
+import '../models/login_request_model.dart';
+import '../models/login_response_model.dart';
+import '../services/shared_service.dart';
 
+class AuthService {
+  static var client = http.Client();
 
+  static Future<bool> login(LoginRequestModel model) async {
+    Map<String, String> requestHeaders = {
+      'Content-Type': 'application/json',
+    };
+
+    var url = Uri.parse("${Config.apiURL}${Config.loginApi}");
+
+    var response = await client.post(
+      url,
+      headers: requestHeaders,
+      body: jsonEncode(model.toJson()),
+    );
+    
+    print("status code: ${response.statusCode}");
+    print("response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+
+      // Convert JSON string to LoginResponseModel object
+      LoginResponseModel responseModel =
+      LoginResponseModel.fromJson(
+        jsonDecode(response.body),
+      );
+
+      // Save login details (like token) in local storage
+      await SharedService.setLoginDetails(responseModel);
+
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
