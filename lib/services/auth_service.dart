@@ -9,36 +9,38 @@ import '../services/shared_service.dart';
 class AuthService {
   static var client = http.Client();
 
-  static Future<bool> login(LoginRequestModel model) async {
+  static Future<String?> login(LoginRequestModel model) async {
+    print("login working..");
     Map<String, String> requestHeaders = {
       'Content-Type': 'application/json',
     };
 
     var url = Uri.parse("${Config.apiURL}${Config.loginApi}");
 
+    print("url : ${Config.apiURL}${Config.loginApi}");
+
     var response = await client.post(
       url,
       headers: requestHeaders,
       body: jsonEncode(model.toJson()),
     );
-    
-    print("status code: ${response.statusCode}");
-    print("response body: ${response.body}");
 
+
+    var jsonData = jsonDecode(response.body);
     if (response.statusCode == 200) {
 
       // Convert JSON string to LoginResponseModel object
       LoginResponseModel responseModel =
-      LoginResponseModel.fromJson(
-        jsonDecode(response.body),
-      );
+      LoginResponseModel.fromJson(jsonData);
+
 
       // Save login details (like token) in local storage
+
       await SharedService.setLoginDetails(responseModel);
 
-      return true;
+      return null;
     } else {
-      return false;
+      return jsonData["message"];
     }
   }
 }

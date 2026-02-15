@@ -22,26 +22,30 @@ class _LoginPageState extends State<LoginPage> {
 
     print("button pressed");
 
-
     setState(() {
       isApiCallProcess = true;
     });
-    LoginRequestModel request = LoginRequestModel(email: _emailController.text, password: _passwordController.text);
 
-    bool result = await AuthService.login(request);
+    String? errorMessage = await AuthService.login(
+        LoginRequestModel(
+          email: _emailController.text,
+          password: _passwordController.text,
+        ),
+    );
 
     setState(() {
       isApiCallProcess = false;
     });
 
-    if(result){
+    if(errorMessage == null){
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const ChatHomePage()),
       );
     }else{
+      print(errorMessage);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login Failed")),
+         SnackBar(content: Text(errorMessage)),
       );
     }
   }

@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/login.dart';
 
-class SignUp extends StatelessWidget {
+class SignUp extends StatefulWidget {
   const SignUp({super.key});
+
+  @override
+  State<SignUp> createState() => _SignUpState();
+}
+
+class _SignUpState extends State<SignUp> {
+
+  // Controllers (you will need these later for API)
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,16 +71,42 @@ class SignUp extends StatelessWidget {
                 const SizedBox(height: 25),
 
                 const Text(
+                  'Username',
+                  style: TextStyle(
+                    color: Color(0xFFCFCECE),
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    hintText: 'Enter your Username',
+                    hintStyle: TextStyle(color: Colors.grey),
+                    filled: true,
+                    fillColor: const Color(0xFF181E32),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
                   'Email',
                   style: TextStyle(
                     color: Color(0xFFCFCECE),
                     fontSize: 15,
                   ),
                 ),
-
                 const SizedBox(height: 12),
 
                 TextField(
+                  controller: _emailController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -69,13 +114,13 @@ class SignUp extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                     hintText: 'Enter your email',
-                    hintStyle: TextStyle(color: Colors.grey[700]),
+                    hintStyle: TextStyle(color: Colors.grey),
                     filled: true,
                     fillColor: const Color(0xFF181E32),
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 12),
 
                 const Text(
                   'Password',
@@ -88,6 +133,7 @@ class SignUp extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 TextField(
+                  controller: _passwordController,
                   style: const TextStyle(color: Colors.white),
                   obscureText: true,
                   decoration: InputDecoration(
@@ -96,29 +142,7 @@ class SignUp extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                     hintText: 'Enter your password',
-                    hintStyle: TextStyle(color: Colors.grey[700]),
-                    filled: true,
-                    fillColor: const Color(0xFF181E32),
-                  ),
-                ),
-                const SizedBox(height:12),
-                const Text(
-                  'confirm password',
-                  style: TextStyle(
-                    color: Color(0xFFCFCECE),
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 12,),
-                TextField(
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    hintText: 'confirm password',
-                    hintStyle: TextStyle(color: Colors.grey[700]),
+                    hintStyle: TextStyle(color: Colors.grey),
                     filled: true,
                     fillColor: const Color(0xFF181E32),
                   ),
@@ -130,7 +154,11 @@ class SignUp extends StatelessWidget {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      print(_usernameController.text);
+                      print(_emailController.text);
+                      print(_passwordController.text);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       shape: RoundedRectangleBorder(
