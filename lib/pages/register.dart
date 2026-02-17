@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/register_request_model.dart';
 import 'package:frontend/pages/login.dart';
+import 'package:frontend/pages/verificationcondepage.dart';
+import 'package:frontend/services/auth_service.dart';
+
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -10,7 +14,42 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
-  // Controllers (you will need these later for API)
+  //api calling part =======================
+
+  bool isApiCallProcess = false;
+
+  void RegisterUser() async{
+    print("register button clicked..");
+
+    setState(() {
+      isApiCallProcess = true;
+    });
+
+    String? errorMessage = await AuthService.register(
+      RegisterRequestModel(
+        username: _usernameController.text,
+        email: _emailController.text,
+        password: _passwordController.text),
+    );
+
+    setState(() {
+      isApiCallProcess = false;
+    });
+
+    if(errorMessage == null){
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => VerificationPage(email: _emailController.text,)),
+      );
+    }else{
+      print(errorMessage);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+
+  }
+
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -22,7 +61,7 @@ class _SignUpState extends State<SignUp> {
     _passwordController.dispose();
     super.dispose();
   }
-
+//--------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,12 +192,8 @@ class _SignUpState extends State<SignUp> {
                 SizedBox(
                   width: double.infinity,
                   height: 55,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      print(_usernameController.text);
-                      print(_emailController.text);
-                      print(_passwordController.text);
-                    },
+                  child: ElevatedButton( // sign up button +++++++++++++++
+                    onPressed: RegisterUser,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       shape: RoundedRectangleBorder(

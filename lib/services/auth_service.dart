@@ -68,7 +68,7 @@ class AuthService {
 
     var jsonData = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201 || response.statusCode == 200) {
       RegisterResponseModel responseModel =
         RegisterResponseModel.fromJson(jsonData);
       return null;
