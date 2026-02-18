@@ -14,11 +14,28 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
 
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   //api calling part =======================
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   bool isApiCallProcess = false;
 
-  void RegisterUser() async{
+  Future<void> RegisterUser() async{
+
+    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
     print("register button clicked..");
 
     setState(() {
@@ -27,10 +44,13 @@ class _SignUpState extends State<SignUp> {
 
     String? errorMessage = await AuthService.register(
       RegisterRequestModel(
-        username: _usernameController.text,
-        email: _emailController.text,
-        password: _passwordController.text),
+        username: username,
+        email: email,
+        password: password
+      ),
     );
+
+
 
     setState(() {
       isApiCallProcess = false;
@@ -39,7 +59,11 @@ class _SignUpState extends State<SignUp> {
     if(errorMessage == null){
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => VerificationPage(email: _emailController.text,)),
+          MaterialPageRoute(
+              builder: (_) => VerificationPage(
+                email: email,
+              )
+          ),
       );
     }else{
       print(errorMessage);
@@ -50,17 +74,9 @@ class _SignUpState extends State<SignUp> {
 
   }
 
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+
+
 //--------------------
   @override
   Widget build(BuildContext context) {

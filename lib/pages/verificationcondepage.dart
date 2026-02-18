@@ -5,7 +5,8 @@ import 'package:frontend/pages/register.dart';
 class VerificationPage extends StatefulWidget {
   final String email;
 
-  const VerificationPage({Key? key, this.email = 'User@example.com'}) : super(key: key);
+  const VerificationPage({super.key, required this.email});
+
 
   @override
   State<VerificationPage> createState() => _VerificationPageState();
