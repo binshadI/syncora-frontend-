@@ -7,4 +7,5 @@ class Config {
   static const String registerApi = "/auth/register";
   static const String verifyOtp = "/auth/verifyotp";
   static const String userProfile = "/profile";
+  static const String home = "/home/contactdisplay";
 }

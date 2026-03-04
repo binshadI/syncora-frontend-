@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/verification_request_model.dart';
 import 'dart:async';
 import 'package:frontend/pages/register.dart';
+import 'package:frontend/services/auth_service.dart';
+import 'package:frontend/pages/homepage.dart';
+import 'package:frontend/pages/login.dart';
 
 class VerificationPage extends StatefulWidget {
   final String email;
 
   const VerificationPage({super.key, required this.email});
 
-
   @override
   State<VerificationPage> createState() => _VerificationPageState();
 }
 
 class _VerificationPageState extends State<VerificationPage> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers =
+  List.generate(4, (_) => TextEditingController());
+
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+
+  bool isApiCallProcess = false;
 
   Timer? _timer;
   int _minutes = 2;
@@ -26,14 +33,75 @@ class _VerificationPageState extends State<VerificationPage> {
     _startTimer();
   }
 
+  // ================= VERIFY OTP =================
+
+  Future<void> verifyOtp() async {
+    if (isApiCallProcess) return;
+
+    final otp = _controllers
+        .map((controller) => controller.text)
+        .join()
+        .trim();
+
+    if (otp.length != 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter complete OTP")),
+      );
+      return;
+    }
+
+    setState(() {
+      isApiCallProcess = true;
+    });
+
+    try {
+      String? errorMessage = await AuthService.verification(
+        VerificationRequestModel(
+          email: widget.email,
+          otp: otp,
+        ),
+      );
+
+      if (errorMessage == null) {
+        _timer?.cancel();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginPage(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Something went wrong")),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isApiCallProcess = false;
+        });
+      }
+    }
+  }
+
+  // ================= TIMER =================
+
   void _startTimer() {
     _timer?.cancel();
+
     setState(() {
       _minutes = 2;
       _seconds = 0;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+
       setState(() {
         if (_seconds > 0) {
           _seconds--;
@@ -47,25 +115,21 @@ class _VerificationPageState extends State<VerificationPage> {
     });
   }
 
-  void _resendCode() {
-    // Add your resend code logic here
+  // ================= RESEND =================
+
+  Future<void> _resendCode() async {
+    if (_minutes > 0 || _seconds > 0) return;
+
+    // TODO: Call resend API here
+
     _startTimer();
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Code resent successfully')),
     );
   }
 
-  void _verifyCode() {
-    String code = _controllers.map((controller) => controller.text).join();
-    if (code.length == 4) {
-      // Add your verification logic here
-      print('Verification code: $code');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter complete code')),
-      );
-    }
-  }
+  // ================= DISPOSE =================
 
   @override
   void dispose() {
@@ -78,6 +142,8 @@ class _VerificationPageState extends State<VerificationPage> {
     }
     super.dispose();
   }
+
+  // ================= BUILD =================
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +161,10 @@ class _VerificationPageState extends State<VerificationPage> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp())),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SignUp())),
                     padding: EdgeInsets.zero,
                   ),
                   Expanded(
@@ -110,13 +179,12 @@ class _VerificationPageState extends State<VerificationPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48), // Balance the back button width
+                  const SizedBox(width: 48),
                 ],
               ),
 
               const SizedBox(height: 40),
 
-              // Verification Code Title (Centered)
               const Center(
                 child: Text(
                   'Verification Code',
@@ -130,7 +198,6 @@ class _VerificationPageState extends State<VerificationPage> {
 
               const SizedBox(height: 12),
 
-              // Email instruction text (Centered)
               const Center(
                 child: Text(
                   'Enter the code sent to your email',
@@ -179,15 +246,18 @@ class _VerificationPageState extends State<VerificationPage> {
                         fillColor: const Color(0xFF1A1F2E),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF2A2F3E)),
+                          borderSide:
+                          const BorderSide(color: Color(0xFF2A2F3E)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF2A2F3E)),
+                          borderSide:
+                          const BorderSide(color: Color(0xFF2A2F3E)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                          borderSide:
+                          const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
                       onChanged: (value) {
@@ -209,7 +279,8 @@ class _VerificationPageState extends State<VerificationPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1F2E),
                       borderRadius: BorderRadius.circular(8),
@@ -234,7 +305,8 @@ class _VerificationPageState extends State<VerificationPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1F2E),
                       borderRadius: BorderRadius.circular(8),
@@ -266,7 +338,9 @@ class _VerificationPageState extends State<VerificationPage> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _minutes == 0 && _seconds == 0 ? _resendCode : null,
+                      onTap: _minutes == 0 && _seconds == 0
+                          ? _resendCode
+                          : null,
                       child: Text(
                         'Resend',
                         style: TextStyle(
@@ -289,7 +363,7 @@ class _VerificationPageState extends State<VerificationPage> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _verifyCode,
+                  onPressed: verifyOtp, // ✅ Fixed: was _verifyCode
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(

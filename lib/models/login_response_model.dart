@@ -7,10 +7,11 @@ class LoginResponseModel {
     required this.refreshToken,
   });
 
-  factory LoginResponseModel.fromJson(Map<String, dynamic> json) => LoginResponseModel(
-    accessToken: json["accessToken"],
-    refreshToken: json["refreshToken"],
-  );
+  factory LoginResponseModel.fromJson(Map<String, dynamic> json) =>
+      LoginResponseModel(
+        accessToken: json["accessToken"],
+        refreshToken: json["refreshToken"],
+      );
 
   Map<String, dynamic> toJson() => {
     "accessToken": accessToken,

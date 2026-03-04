@@ -32,6 +32,8 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.0
+  shared_preferences: ^2.2.2
+
 
 
   api_cache_manager: ^1.0.2
@@ -59,6 +61,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - lib/assets/images/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

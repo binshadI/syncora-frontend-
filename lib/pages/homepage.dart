@@ -1,25 +1,8 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Syncore Chat',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFF101522),
-      ),
-      home: const ChatHomePage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+import '../models/home_response_model.dart';
+import '../services/home_service.dart';
+import '../services/shared_service.dart';
+import '../pages/Getstarted.dart';
 
 class ChatHomePage extends StatefulWidget {
   const ChatHomePage({Key? key}) : super(key: key);
@@ -31,56 +14,48 @@ class ChatHomePage extends StatefulWidget {
 class _ChatHomePageState extends State<ChatHomePage> {
   int _selectedIndex = 0;
 
-  // Sample chat data
-  final List<Map<String, dynamic>> _chats = [
-    {
-      'name': 'Alice Johnson',
-      'message': 'Hey! How are you doing?',
-      'time': '2m ago',
-      'unread': 2,
-      'online': true,
-    },
-    {
-      'name': 'Bob Smith',
-      'message': 'Can we meet tomorrow?',
-      'time': '15m ago',
-      'unread': 0,
-      'online': false,
-    },
-    {
-      'name': 'Emma Wilson',
-      'message': 'Thanks for the help!',
-      'time': '1h ago',
-      'unread': 1,
-      'online': true,
-    },
-    {
-      'name': 'David Brown',
-      'message': 'See you later 👋',
-      'time': '3h ago',
-      'unread': 0,
-      'online': false,
-    },
-    {
-      'name': 'Sarah Davis',
-      'message': 'Let me know when you\'re free',
-      'time': '5h ago',
-      'unread': 3,
-      'online': true,
-    },
-    {
-      'name': 'Mike Taylor',
-      'message': 'Perfect! Talk soon',
-      'time': '1d ago',
-      'unread': 0,
-      'online': false,
-    },
-  ];
+  List<Contact> _contacts = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final contacts = await HomeService.getContacts();
+      setState(() {
+        _contacts = contacts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _logout() async {
+    await SharedService.logout(context);
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const GetStartedPage()),
+          (route) => false,
+    );
+  }
 
   void _onBottomNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
@@ -90,37 +65,82 @@ class _ChatHomePageState extends State<ChatHomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top view - User profile and app name
             _buildTopView(),
-
             const SizedBox(height: 20),
-
-            // Search bar
             _buildSearchBar(),
-
             const SizedBox(height: 20),
-
-            // Chatting section
-            Expanded(
-              child: _buildChattingSection(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
-      // Add contact button
       floatingActionButton: _buildAddContactButton(),
-      // Bottom navigation
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // Top View Section
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.blue),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red[400], size: 48),
+            const SizedBox(height: 12),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.grey[500], fontSize: 15),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _loadContacts,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_contacts.isEmpty) {
+      return Center(
+        child: Text(
+          'No contacts yet',
+          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadContacts,
+      color: Colors.blue,
+      backgroundColor: const Color(0xFF181E32),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _contacts.length,
+        itemBuilder: (context, index) => _buildChatItem(_contacts[index]),
+      ),
+    );
+  }
+
   Widget _buildTopView() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Row(
         children: [
-          // Rounded user image
           Container(
             width: 50,
             height: 50,
@@ -131,15 +151,10 @@ class _ChatHomePageState extends State<ChatHomePage> {
               ),
             ),
             child: const Center(
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 30,
-              ),
+              child: Icon(Icons.person, color: Colors.white, size: 30),
             ),
           ),
           const SizedBox(width: 15),
-          // App name - Syncore
           const Text(
             'Syncore',
             style: TextStyle(
@@ -150,18 +165,21 @@ class _ChatHomePageState extends State<ChatHomePage> {
             ),
           ),
           const Spacer(),
-          // Optional notification icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF181E32),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.notifications_outlined,
-              color: Colors.white70,
-              size: 22,
+          // Logout button
+          GestureDetector(
+            onTap: _logout,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF181E32),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.logout,
+                color: Colors.white70,
+                size: 22,
+              ),
             ),
           ),
         ],
@@ -169,7 +187,6 @@ class _ChatHomePageState extends State<ChatHomePage> {
     );
   }
 
-  // Search Bar Section
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -195,19 +212,7 @@ class _ChatHomePageState extends State<ChatHomePage> {
     );
   }
 
-  // Chatting Section
-  Widget _buildChattingSection() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _chats.length,
-      itemBuilder: (context, index) {
-        final chat = _chats[index];
-        return _buildChatItem(chat);
-      },
-    );
-  }
-
-  Widget _buildChatItem(Map<String, dynamic> chat) {
+  Widget _buildChatItem(Contact contact) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(12),
@@ -217,113 +222,54 @@ class _ChatHomePageState extends State<ChatHomePage> {
       ),
       child: Row(
         children: [
-          // Profile image (rounded) on left side
-          Stack(
-            children: [
-              Container(
-                width: 55,
-                height: 55,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.primaries[chat['name'].hashCode % Colors.primaries.length],
-                      Colors.primaries[(chat['name'].hashCode + 3) % Colors.primaries.length],
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    chat['name'][0].toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          Container(
+            width: 55,
+            height: 55,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  Colors.primaries[
+                  contact.username.hashCode % Colors.primaries.length],
+                  Colors.primaries[(contact.username.hashCode + 3) %
+                      Colors.primaries.length],
+                ],
+              ),
+            ),
+            child: Center(
+              child: Text(
+                contact.username[0].toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              // Online status indicator
-              if (chat['online'])
-                Positioned(
-                  right: 2,
-                  bottom: 2,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF181E32),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
           const SizedBox(width: 15),
-          // Chat details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      chat['name'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      chat['time'],
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  contact.username,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        chat['message'],
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (chat['unread'] > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${chat['unread']}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
+                Text(
+                  'Tap to start chatting',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -333,11 +279,9 @@ class _ChatHomePageState extends State<ChatHomePage> {
     );
   }
 
-  // Add Contact Button (rounded with plus icon)
   Widget _buildAddContactButton() {
     return FloatingActionButton(
       onPressed: () {
-        // Add contact functionality
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Add new contact'),
@@ -346,15 +290,10 @@ class _ChatHomePageState extends State<ChatHomePage> {
         );
       },
       backgroundColor: Colors.blue,
-      child: const Icon(
-        Icons.add,
-        color: Colors.white,
-        size: 30,
-      ),
+      child: const Icon(Icons.add, color: Colors.white, size: 30),
     );
   }
 
-  // Bottom Navigation (Chat, Calls, Settings)
   Widget _buildBottomNav() {
     return Container(
       decoration: const BoxDecoration(
@@ -369,7 +308,7 @@ class _ChatHomePageState extends State<ChatHomePage> {
         onTap: _onBottomNavTap,
         backgroundColor: Colors.transparent,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey[600],
+        unselectedItemColor: Colors.grey,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
         items: const [

@@ -2,24 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:frontend/pages/register.dart';
 import 'pages/login.dart';
 import 'pages/homepage.dart';
+import 'pages/Getstarted.dart';
+import 'services/shared_service.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
-  runApp(const MyApp());
+  // ✅ Use SharedService (api_cache_manager) — NOT SharedPreferences
+  // Because auth_service saves via SharedService.setLoginDetails(), not prefs.setString()
+  final isLoggedIn = await SharedService.isLoggedIn();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      home: isLoggedIn ? const ChatHomePage() : const GetStartedPage(),
       routes: {
-        '/login' : (context) => const LoginPage(),
-        '/SignUp' : (context) => const SignUp(),
-        '/home' : (context) => const ChatHomePage(),
+        '/login': (context) => const LoginPage(),
+        '/SignUp': (context) => const SignUp(),
+        '/home': (context) => const ChatHomePage(),
+        '/Getstarted': (context) => const GetStartedPage(),
       },
     );
   }
