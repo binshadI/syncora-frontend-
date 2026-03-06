@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:frontend/models/verification_request_model.dart';
-import 'package:frontend/models/verification_response_model.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/config.dart';
@@ -8,7 +7,6 @@ import '../models/login_request_model.dart';
 import '../models/login_response_model.dart';
 import '../services/shared_service.dart';
 import '../models/register_request_model.dart';
-import '../models/register_response_model.dart';
 
 class AuthService {
   static var client = http.Client();

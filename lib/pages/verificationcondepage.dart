@@ -3,7 +3,6 @@ import 'package:frontend/models/verification_request_model.dart';
 import 'dart:async';
 import 'package:frontend/pages/register.dart';
 import 'package:frontend/services/auth_service.dart';
-import 'package:frontend/pages/homepage.dart';
 import 'package:frontend/pages/login.dart';
 
 class VerificationPage extends StatefulWidget {

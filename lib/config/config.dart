@@ -8,4 +8,5 @@ class Config {
   static const String verifyOtp = "/auth/verifyotp";
   static const String userProfile = "/profile";
   static const String home = "/home/contactdisplay";
+  static const String Friendrequest = "/req/friendRequest";
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:ui'; // required for ImageFilter (blur)
 import '../models/home_response_model.dart';
 import '../services/home_service.dart';
-import '../services/shared_service.dart';
-import '../pages/Getstarted.dart';
+import '../dialogs/add_contact_dialog.dart';
 
 class ChatHomePage extends StatefulWidget {
   const ChatHomePage({Key? key}) : super(key: key);
@@ -44,13 +44,30 @@ class _ChatHomePageState extends State<ChatHomePage> {
     }
   }
 
-  Future<void> _logout() async {
-    await SharedService.logout(context);
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const GetStartedPage()),
-          (route) => false,
+  // ── Opens the Add Contact dialog (dialog code lives in its own file) ────────
+  Future<void> _openAddContactDialog() async {
+    final result = await showAddContactDialog(context);
+
+    if (result != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Friend request sent to $result'),
+          backgroundColor: Colors.blue,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
+  }
+
+  // ── Opens notification / friend request panel ───────────────────────────────
+  void _openNotifications() {
+    // TODO: navigate to your friend-request / notifications screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Friend requests'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -165,9 +182,10 @@ class _ChatHomePageState extends State<ChatHomePage> {
             ),
           ),
           const Spacer(),
-          // Logout button
+
+          // ── Notification bell (replaces logout) ────────────────────────────
           GestureDetector(
-            onTap: _logout,
+            onTap: _openNotifications,
             child: Container(
               width: 40,
               height: 40,
@@ -175,10 +193,28 @@ class _ChatHomePageState extends State<ChatHomePage> {
                 color: const Color(0xFF181E32),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
-                Icons.logout,
-                color: Colors.white70,
-                size: 22,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white70,
+                    size: 22,
+                  ),
+                  // Red dot badge — show when there are pending requests
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -279,16 +315,10 @@ class _ChatHomePageState extends State<ChatHomePage> {
     );
   }
 
+  // ── FAB opens the dialog from its own file ─────────────────────────────────
   Widget _buildAddContactButton() {
     return FloatingActionButton(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Add new contact'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      },
+      onPressed: _openAddContactDialog,
       backgroundColor: Colors.blue,
       child: const Icon(Icons.add, color: Colors.white, size: 30),
     );
