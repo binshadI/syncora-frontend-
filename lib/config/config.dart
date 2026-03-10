@@ -9,4 +9,7 @@ class Config {
   static const String userProfile = "/profile";
   static const String home = "/home/contactdisplay";
   static const String Friendrequest = "/req/friendRequest";
+  static const String notification = "/req/inbox";
+  static const String status = "/req/status/";
+  static const String getroomId = "/chatroom/findroomId";
 }

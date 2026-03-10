@@ -15,9 +15,10 @@ class HomeService {
     var jsonData = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
-      return HomeResponse.fromJson(jsonData).contacts;
+      return HomeResponse.fromJson(jsonData).contacts; // ← was Contact.fromJson
     } else {
       throw Exception(jsonData["message"] ?? "Failed to load contacts");
     }
   }
 }
+
