@@ -253,6 +253,8 @@ class _ChatHomePageState extends State<ChatHomePage> {
               userName: contact.username,
               roomId: result['roomId']!,
               senderId: result['senderId']!,
+              friendId: result['friendId']!,
+              senderName: result['senderName']!,
               isOnline: true,
             ),
           ),
